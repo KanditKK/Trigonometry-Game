@@ -3,37 +3,39 @@ import pygame
 import random
 
 crashed = False
-stageCleared = False
 pygame.init()
 screen.init()
 
 while True:
 
     while not util.checkKeyPress():  # Game Menu
-        resources.events = pygame.event.get()
-        util.checkQuit()
+        resources.events = pygame.event.get() #get events for calculate quit and start actions.
+        util.checkQuit() #check if quit
 
-        screen.renderMenuScreen()
-        screen.update()
+        screen.renderMenuScreen() #blit menu screen
+        screen.update() #update pygame screen.
 
-    while not stageCleared:
-        resources.events = pygame.event.get()
-        util.checkQuit()
+    while score.stage == 1:
+        resources.events = pygame.event.get() #get events for calculate wasd and quit actions.
+        util.checkQuit() #check if quit
 
-        bullet.create(random.randint(0, screen.panelWidth - 10), 0, player.posx, player.posy)
+        #enemy.bullet.create(random.randint(0, screen.panelWidth - 10), 0, player.posx, player.posy)
 
-        print([screen.backgroundY1, screen.backgroundY2, len(bullet.list)])
+        enemy.bullet.cycle() #add bullet (x, y) by angle(sin, cos).
+        player.bullet.createCycle() #add bullet if spacebar is pressed.
+        player.bullet.cycle() #add bullet y by 5 px.
+        player.cycle() #add player (x, y) change by wasd and calculate boundaries detection.
 
-        bullet.cycle()
-        player.cycle()
+        screen.renderBackground() #calculate and blit background to screen.
+        screen.renderEnemyBullet() #blit all enemy's bullets to screen.
+        screen.renderPlayerBullet() #blit all player's bullets to screen
+        screen.renderPlayer() #blit player with (x, y) to screen.
+        screen.update() #update pygame screen.
 
-        screen.renderBackground()
-        screen.renderBullet()
-        screen.renderPlayer()
-        screen.update()
+        score.add(1) #add score by calculate game ticks.
+        score.checkStage() #check stage by score.
 
-        #if pygame.time.get_ticks() >= 10000: stageCleared = True
-
+        print([len(enemy.bullet.list), player.bullet.isShooting , player.bullet.list ])
         clock.tick(50)
 
-    stageCleared = False
+    score.reset()
