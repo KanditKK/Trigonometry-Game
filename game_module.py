@@ -54,7 +54,7 @@ class screen:
 
     def renderEnemyBullet():
         for data in enemy.bullet.list:
-            screen.gameDisplay.blit(resources.image.bullet, (data[0] + screen.panelxOfset + 7, data[1] + screen.panelyOfset + 7))
+            screen.gameDisplay.blit(resources.image.enemyBullet, (data[0] + screen.panelxOfset + 7, data[1] + screen.panelyOfset + 7))
 
     def renderPlayerBullet():
         for data in player.bullet.list:
@@ -74,11 +74,13 @@ class player:
     ymc = 0
     class bullet:
         list = []
+        width = 10
+        height = 15
         isShooting = False
         cooldown = 10
         def createCycle():
             if player.bullet.isShooting == True and player.bullet.cooldown <= 0:
-                player.bullet.list.append([player.posx+(player.width//2), player.posy])
+                player.bullet.list.append([player.posx+(player.width//2)-(player.bullet.width//2), player.posy])
                 player.bullet.cooldown = 10
 
         def cycle():
@@ -172,8 +174,8 @@ class score:
 
 class resources:
     class image:
-        bullet = pygame.image.load('resource/bullet.PNG')
-        playerBullet = pygame.image.load('resource/bullet.PNG')
+        enemyBullet = pygame.image.load('resource/enmBullet1.PNG')
+        playerBullet = pygame.image.load('resource/plyBullet1.png')
         player = pygame.image.load('resource/battleplane.png')
         background = pygame.image.load('resource/background.png')
 
