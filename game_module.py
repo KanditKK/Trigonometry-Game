@@ -1,7 +1,8 @@
 import pygame
 import math
 import random
-
+import time
+pygame.init()
 
 class util:
     def checkQuit():
@@ -32,8 +33,8 @@ class screen:
 
     backgroundY1 = -panelHeight
     backgroundY2 = -(panelHeight * 3)
-    backgroundY3 = -(panelHeight * 3)
 
+    selectedMessage = 'resources.messages.died[random.randint(0,len(resources.messages.died)-1)]'
     def init():
         pygame.display.set_caption('Trigonometry Game!')
         screen.gameDisplay.fill((200, 200, 200))
@@ -41,16 +42,50 @@ class screen:
     def update():
         pygame.display.update()
 
-    def renderBackground():
+    def renderBackground(stage):
         screen.backgroundY1 += 3
         screen.backgroundY2 += 3
         if screen.backgroundY1 >= screen.panelHeight: screen.backgroundY1 = -(screen.panelHeight * 3)
         if screen.backgroundY2 >= screen.panelHeight: screen.backgroundY2 = -(screen.panelHeight * 3)
-        screen.gameDisplay.blit(resources.image.background, (0, screen.backgroundY1))
-        screen.gameDisplay.blit(resources.image.background, (0, screen.backgroundY2))
+        screen.gameDisplay.blit(resources.image.background[stage-1], (0, screen.backgroundY1))
+        screen.gameDisplay.blit(resources.image.background[stage-1], (0, screen.backgroundY2))
 
     def renderMenuScreen():
-        screen.gameDisplay.fill((200, 200, 200))
+        screen.renderBackground(1)
+        screen.gameDisplay.blit(resources.image.overlay1,(0,0))
+        text = resources.font.big.render('Trigonometry Game!', False, (255,255,255))
+        textRect = text.get_rect()
+        textRect.center = (screen.panelWidth // 2, screen.panelHeight // 2)
+        screen.gameDisplay.blit(text, textRect)
+
+    def renderDiedScreen():
+        screen.renderBackground(score.lastestStage)
+        screen.renderEnemyBullet() #blit all enemy's bullets to screen.
+        screen.renderPlayerBullet() #blit all player's bullets to screen
+        screen.renderPlayer() #blit player with (x, y) to screen.
+        screen.renderEnemy()
+        screen.gameDisplay.blit(resources.image.overlay1,(0,0))
+        text = resources.font.big.render('You Died.', False, (255,255,255))
+        textRect = text.get_rect()
+        textRect.center = (screen.panelWidth // 2, screen.panelHeight // 2)
+        screen.gameDisplay.blit(text, textRect)
+        text = resources.font.regular.render(screen.selectedMessage, False, (255,255,255))
+        textRect = text.get_rect()
+        textRect.center = (screen.panelWidth // 2, (screen.panelHeight // 2)+50)
+        screen.gameDisplay.blit(text, textRect)
+        text = resources.font.small.render('Score: '+str(score.Score), False, (255,255,255))
+        textRect = text.get_rect()
+        textRect.center = (screen.panelWidth // 2, 30)
+        screen.gameDisplay.blit(text, textRect)
+        text = resources.font.small.render('Highscore: '+str(score.highScore), False, (255,255,255))
+        textRect = text.get_rect()
+        textRect.center = (screen.panelWidth // 2, 55)
+        screen.gameDisplay.blit(text, textRect)
+        if score.Score == score.highScore:
+            text = resources.font.regular.render('New Highscore!', False, (255,255,255))
+            textRect = text.get_rect()
+            textRect.center = (screen.panelWidth // 2, 100)
+            screen.gameDisplay.blit(text, textRect)
 
     def renderEnemyBullet():
         for data in enemy.bullet.list:
@@ -69,6 +104,20 @@ class screen:
                 screen.gameDisplay.blit(resources.image.enemyType2, (data[0] + screen.panelxOfset, data[1] + screen.panelyOfset))
             if data[2] == 3:
                 screen.gameDisplay.blit(resources.image.enemyType3, (data[0] + screen.panelxOfset, data[1] + screen.panelyOfset))
+    def renderScore():
+        text = resources.font.small.render(str(score.Score), False, (255,255,255))
+        textRect = text.get_rect()
+        textRect.center = (screen.panelWidth // 2, 50)
+        screen.gameDisplay.blit(text, textRect)
+    def renderStar():
+        for data in enemy.star.list:
+            screen.gameDisplay.blit(resources.image.star, (data[0],data[1]))
+    def transition():
+        for i in range(100):
+            resources.events = pygame.event.get() #get events for calculate quit and start actions.
+            screen.gameDisplay.blit(resources.image.overlay2, (0,0))
+            screen.update()
+            time.sleep(0.005)
 class player:
     posx = screen.panelWidth // 2
     posy = (screen.panelHeight // 2) + 100
@@ -78,6 +127,7 @@ class player:
     xmc = 0
     ypc = 0
     ymc = 0
+    speed = 1
     class bullet:
         list = []
         width = 10
@@ -105,7 +155,8 @@ class player:
                     if bulletX >= enemyX and bulletX <= enemyX+enemy.width and bulletY >= enemyY and bulletY <= enemyY+enemy.height:
                         player.bullet.list[b][1] = -player.bullet.height-10
                         enemy.list[e][1] = screen.displayHeight
-                        score.add(2)
+                        score.add(1)
+                        enemy.star.create(enemyX, enemyY)
 
         def despawn():
             newls = []
@@ -132,6 +183,8 @@ class player:
                     player.ymc = 10
                 if event.key == pygame.K_s:
                     player.ypc = 10
+                if event.key == pygame.K_l:
+                    player.speed = 2
                 if event.key == pygame.K_SPACE:
                     player.bullet.isShooting = True
                 if event.key == pygame.K_g:
@@ -145,12 +198,14 @@ class player:
                     player.ymc = 0
                 if event.key == pygame.K_s:
                     player.ypc = 0
+                if event.key == pygame.K_l:
+                    player.speed = 1
                 if event.key == pygame.K_SPACE:
                     player.bullet.isShooting = False
 
         # print([player.posx,player.posy,player.xc,player.yc])
-        player.posx += (player.xpc - player.xmc)
-        player.posy += (player.ypc - player.ymc)
+        player.posx += (player.xpc - player.xmc)//player.speed
+        player.posy += (player.ypc - player.ymc)//player.speed
         if player.posx >= screen.panelWidth - player.width: player.posx = screen.panelWidth - player.width
         if player.posy >= screen.panelHeight - player.height: player.posy = screen.panelHeight - player.height
         if player.posx <= 0: player.posx = 0
@@ -228,17 +283,14 @@ class enemy:
                     enemy.bullet.list[i][0] += enemy.bullet.speed * math.cos(math.radians(angle))
                     enemy.bullet.list[i][1] += enemy.bullet.speed * math.sin(math.radians(angle))
         def hitbox():
-            isHit = False
             for b in range(len(enemy.bullet.list)):
                 bulletX = enemy.bullet.list[b][0]
                 bulletY = enemy.bullet.list[b][1]
                 playerX = player.posx
                 playerY = player.posy
 
-                if bulletX >= playerX and bulletX <= playerX+player.width and bulletY >= playerY and bulletY <= playerY+player.height:
-                    enemy.bullet.list[b][1] = -enemy.bullet.height-10
-                    isHit = True
-            return isHit
+                if bulletX >= playerX+28 and bulletX <= playerX+player.width-28 and bulletY >= playerY and bulletY <= playerY+player.height:
+                    return True
         def despawn():
             newls = []
             for i in range(len(enemy.bullet.list)):
@@ -247,11 +299,39 @@ class enemy:
             for data in newls:
                 enemy.bullet.list.append(data)
         def reset(): enemy.bullet.list = []
+
+    class star:
+        list = [] #[x, y, age]
+        width = 15
+        height = 15
+        def create(x,y):
+            enemy.star.list.append([x,y,0])
+        def hitbox():
+            for b in range(len(enemy.star.list)):
+                bulletX = enemy.star.list[b][0]
+                bulletY = enemy.star.list[b][1]
+                playerX = player.posx
+                playerY = player.posy
+                enemy.star.list[b][2] += 1
+
+                if bulletX >= playerX and bulletX <= playerX+player.width-28 and bulletY >= playerY and bulletY <= playerY+player.height:
+                    score.add(2)
+                    enemy.star.list[b][1] = screen.displayHeight
+        def despawn():
+            newls = []
+            for i in range(len(enemy.star.list)):
+                if enemy.star.list[i][1] < screen.panelHeight and enemy.star.list[i][1] > -enemy.star.height and enemy.star.list[i][2] <= 500: newls.append(enemy.star.list[i])
+            enemy.star.list.clear()
+            for data in newls:
+                enemy.star.list.append(data)
+        def reset():
+            enemy.star.list.clear()
 class score:
     Score = 0
     highScore = 0
     heart = 3
     stage = 1
+    lastestStage = 1
     def add(type):
         if type == 1:
             score.Score += 1
@@ -271,27 +351,38 @@ class score:
         highscoretxt.close()
         if score.Score > score.highScore:
             highscoretxt = open('resource/score.txt', 'w')
-            highscoretxt.write(str(score))
+            highscoretxt.write(str(score.Score))
             highscoretxt.close()
             score.highScore = score.Score
 
     def checkStage():
-        if score.Score >= 1000: score.stage = 2
-        if score.Score >= 2000: score.stage = 3
+        if score.stage != 5:
+            if score.stage != 3:
+                if score.Score >= 50: score.stage = 2; score.lastestStage = 2
+            if score.Score >= 200: score.stage = 3; score.lastestStage = 3
 
 class resources:
     class image:
         enemyBullet = [pygame.image.load('resource/enmBullet1.PNG'), pygame.image.load('resource/enmBullet2.png'), pygame.image.load('resource/enmBullet2.png')]
         playerBullet = pygame.image.load('resource/plyBullet1.png')
         player = pygame.image.load('resource/player.png')
-        background = pygame.image.load('resource/background.png')
+        background = [pygame.image.load('resource/background.png'),pygame.image.load('resource/background2.png')]
         enemyType1 = pygame.image.load('resource/enemy1.png')
         enemyType2 = pygame.image.load('resource/enemy2.png')
         enemyType3 = pygame.image.load('resource/enemy3.png')
-
+        overlay1 = pygame.image.load('resource/blackOverlay.png')
+        overlay1.set_alpha(100)
+        overlay2 = pygame.image.load('resource/blackOverlay.png')
+        overlay2.set_alpha(10)
+        star = pygame.image.load('resource/star.png')
     class sound:
         pass
-
+    class font:
+        regular = pygame.font.Font('resource/Exo-Regular.otf', 24)
+        big = pygame.font.Font('resource/Exo-Regular.otf', 54)
+        small = pygame.font.Font('resource/Exo-Regular.otf', 18)
+    class messages:
+        died = ['Ha Ha Ha, So nooooooooob.', 'Sorry to see you died.', 'Oh, Why are you so noob?', 'Have you done your best?', 'Try Harder!', 'Respect, sir', "Can't you beat Bossy_oo?", 'Noobie.', 'So dump.', 'F']
     events = pygame.event.get()
 
 
