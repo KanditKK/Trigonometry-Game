@@ -572,10 +572,15 @@ class resources:
 
     class sound:
         death = pygame.mixer.Sound('resource/death.mp3')
+        death.set_volume(0.1)
         star = pygame.mixer.Sound('resource/star.mp3')
+        star.set_volume(0.1)
         player = pygame.mixer.Sound('resource/player.mp3')
+        player.set_volume(0.1)
         bullet = pygame.mixer.Sound('resource/bullet.mp3')
+        bullet.set_volume(0.1)
         bossdied = pygame.mixer.Sound('resource/bossdied.mp3')
+        bossdied.set_volume(0.1)
 
     class font:
         regular = pygame.font.Font('resource/Exo-Regular.otf', 24)

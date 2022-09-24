@@ -11,6 +11,7 @@ import time
 
 pygame.init()
 mixer.init()
+mixer.music.set_volume(0.05)
 screen.init()
 
 while True: #Always run the loop.
