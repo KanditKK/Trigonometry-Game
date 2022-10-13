@@ -587,6 +587,6 @@ class resources:
         big = pygame.font.Font('resource/Exo-Regular.otf', 54)
         small = pygame.font.Font('resource/Exo-Regular.otf', 18)
     class messages:
-        died = ['Ha Ha Ha, So nooooooooob.', 'Sorry to see you died.', 'Oh, Why are you so noob?', 'Have you done your best?', 'Try Harder!', 'Respect, sir', "Can't you beat Bossy_oo?", 'Noobie.', 'So dump.', 'F']
+        died = ['Ha Ha Ha, So nooooooooob.', 'Sorry to see you died.', 'Oh, Why are you so noob?', 'Have you done your best?', 'Try Harder!', 'Respect, sir', "Can't you beat Bossy_oo?", 'Noobie.', 'So dumb.', 'F']
     events = pygame.event.get()
 clock = pygame.time.Clock()
